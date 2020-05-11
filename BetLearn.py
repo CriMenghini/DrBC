@@ -263,7 +263,12 @@ class BetLearn:
         return tf.reduce_mean(loss)
 
     def gen_graph(self, num_min, num_max):
+        list_kinds = ['erdos_renyi', 'small-world', 'barabasi_albert', 'powerlaw']
         cur_n = np.random.randint(num_max - num_min + 1) + num_min
+        
+        import random
+        self.g_type = random.choice(list_kinds)
+        
         if self.g_type == 'erdos_renyi':
             g = nx.erdos_renyi_graph(n=cur_n, p=0.15)
         elif self.g_type == 'small-world':
@@ -437,7 +442,7 @@ class BetLearn:
         best_model_iter = 500 * best_vc
         best_model = './models/nrange_iter_%d.ckpt' % (best_model_iter)
         return best_model
-
+    """
     def EvaluateSynData(self, data_test, model_file=None):  # test synthetic data
         if model_file == None:  # if user do not specify the model_file
             model_file = self.findModel()
@@ -460,9 +465,16 @@ class BetLearn:
             frac_kendal += kendal/n_test
         print('\nRun_time, Top1%, Kendall tau: %.6f, %.6f, %.6f'% (frac_run_time, frac_topk, frac_kendal))
         return frac_run_time, frac_topk, frac_kendal
+    """
 
-
-    def EvaluateRealData(self, model_file, data_test, label_file):  # test real data
+    def EvaluateRealData(self, model_file, data_test, label_file, synt=True):  # test real data
+        """
+        When synt is True, the value of data_test is a list of weighted edges 
+        otherwise it's a file name
+        """
+        if synt:
+          g = nx.Graph()
+          g.add_weighted_edges_from(data_test)
         g = nx.read_weighted_edgelist(data_test)
         sys.stdout.flush()
         self.LoadModel(model_file)
